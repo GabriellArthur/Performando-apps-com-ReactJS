@@ -1,4 +1,5 @@
 # memo | useMemo | useCallBack | Virtualização | Bundle Analyzer
+<img alt="Ignite" src="https://i.imgur.com/eCVyxxy.png">
 
 1. Criar uma nova versão do componente (memo - evita a criação caso não tenha alterações)
 2. Comparar com a versão anterior 
