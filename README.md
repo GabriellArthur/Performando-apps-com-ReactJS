@@ -1,39 +1,110 @@
-# Example app with [chakra-ui](https://github.com/chakra-ui/chakra-ui) and Typescript
+# memo | useMemo | useCallBack | Virtualização | Bundle Analyzer
 
-This example features how to use [chakra-ui](https://github.com/chakra-ui/chakra-ui) as the component library within a Next.js app with typescript.
+1. Criar uma nova versão do componente (memo - evita a criação caso não tenha alterações)
+2. Comparar com a versão anterior 
+3. Se houverem alterações, vai atualizar o que alterou
 
-Next.js and chakra-ui have built-in TypeScript declarations, so we'll get autocompletion for their modules straight away.
+memo faz shallow compare => comparação rasa 
 
-We are connecting the Next.js `_app.js` with `chakra-ui`'s Provider and theme so the pages can have app-wide dark/light mode. We are also creating some components which shows the usage of `chakra-ui`'s style props.
+Pior momento é fazer calculo na hora de rendeziação
 
-## Preview
+{} === {} /false
+javascript faz igualdade referencial
 
-Preview the example live on [StackBlitz](http://stackblitz.com/):
+# memo
+1. Pure Functional Componentes = componentes puros (retorna sempre a mesma coisa)
+2. Renderes too often = componentes que renderizam de mais
+3. Re-renderes with same props = rendereizam muitas vezes com as mesmas propriedades
+4. medium to big size = ganhar muita perfomace
 
-[![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/github/vercel/next.js/tree/canary/examples/with-chakra-ui-typescript)
+# useMemo/useCallBack
+useMemo = eveitar que evite muito processamento toda vezes que o componente renderizar 
+<br/>
+1- Cálculos pesados
+<br/>
+2- igualdade referencial (quando a gente repassa aquela informação para o componente filho)
+<br/><br/>
+useCallBack = memorizar uma função
+<br/>
+1- uma função fica pesada por igualdade referencial e não por quantidade de linhas
+<br/>
+# Dividingo o Código (code splitting)
+yarn dev = gera um arquivo bundle.js | build.js 
 
-## Deploy your own
-
-Deploy the example using [Vercel](https://vercel.com?utm_source=github&utm_medium=readme&utm_campaign=next-example):
-
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/git/external?repository-url=https://github.com/vercel/next.js/tree/canary/examples/with-chakra-ui-typescript&project-name=with-chakra-ui-typescript&repository-name=with-chakra-ui-typescript)
-
-## How to use
-
-### Using `create-next-app`
-
-Execute [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app) with [npm](https://docs.npmjs.com/cli/init) or [Yarn](https://yarnpkg.com/lang/en/docs/cli/create/) to bootstrap the example:
-
-```bash
-npx create-next-app --example with-chakra-ui-typescript with-chakra-ui-typescript-app
-# or
-yarn create next-app --example with-chakra-ui-typescript with-chakra-ui-typescript-app
+react
+```tsx
+import {lazy} from 'react'
+```
+next
+```tsx
+import dynamic from 'next/dynamic'
 ```
 
-Deploy it to the cloud with [Vercel](https://vercel.com/new?utm_source=github&utm_medium=readme&utm_campaign=next-example) ([Documentation](https://nextjs.org/docs/deployment)).
+```tsx
+   import {AddProductToWishlistProps} from './AddProductToWishlist'
 
-## Notes
+   const AddProductToWishlist = dynamic<AddProductToWishlistProps>(()=>{
+      return import('./AddProductToWishlist').the(mod => mod.AddProductToWishlist)
+   },{
+      loading: () => <span>Carregando...</span>
+   })
+```
+Outro exemplo:
 
-Chakra has supported Gradients and RTL in `v1.1`. To utilize RTL, [add RTL direction and swap](https://chakra-ui.com/docs/features/rtl-support).
+```tsx
+async function showFormattedDate(){
+   const {format} = await import('date-fns')
 
-If you don't have multi-direction app, you should make `<Html lang="ar" dir="rtl">` inside `_document.ts`.
+   format()
+}
+```
+
+# Virtualização
+(telas com muitas informações, permite que a gente mostre em tela apenas os itens que cabem na tela do usuario)
+
+[Bibilioteca](http://bvaughn.github.io/react-virtualized/#/components/List)
+
+```jsx
+import { List, ListRowRenderer } from 'react-virtualized';
+
+  const rowRenderer: ListRowRenderer = ({ index, key, style }) => {
+    return (
+      <div key={key} style={style}>
+        <ProductItem
+          product={results[index]}
+          onAddToWishlist={onAddToWishlist}
+        />
+      </div>
+    );
+  };
+
+   <List
+      width={900} 
+      height={300}
+      rowHeight={30}
+      overscanRowCount={5}       //Quantos itens eu quero deixar pre-carregaveis para cima e para baixo
+      rowCount={results.length}  //Quantos itens tem na lista no max
+      rowRenderer={rowRenderer}  //rendereziar cada item da lista
+   />
+```
+# Bundle Analyzer
+Ver o peso do nosso bundle na nossa aplicação
+
+[npm](https://www.npmjs.com/package/@next/bundle-analyzer)
+
+# Execução da aplicação
+
+instalação das dependencias 
+```jsx
+yarn
+```
+
+subindo a aplicação front-end (localhost:3000)
+```jsx
+yarn dev
+```
+
+subindo o servidor local (localhost:3333)
+```jsx
+yarn server
+```
